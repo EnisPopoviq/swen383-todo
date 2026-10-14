@@ -1,0 +1,59 @@
+
+@startuml ClassDiagram
+
+title Todo App - Week 2 Class Diagram (Existing Design)
+
+skinparam classAttributeIconSize 0
+
+class TodoManager {
+  + tasks: Object[]
+  + container: HTMLElement
+
+  + constructor(containerId: String)
+  + loadTasks(): void
+  + saveTasks(): void
+  + addTask(description: String, type: String): Boolean
+  + toggleComplete(id: Number): void
+  + deleteTask(id: Number): void
+  + renderPendingRows(): String
+  + renderCompletedRows(): String
+  + render(justAddedId: Number): void
+}
+
+interface "Storage" as BrowserStorage <<Browser API>> {
+  + getItem(key: String): String
+  + setItem(key: String, value: String): void
+}
+
+class "Document" as BrowserDocument <<Browser API>> {
+  + getElementById(id: String): HTMLElement
+  + title: String
+}
+
+class "HTMLElement" as BrowserElement <<Browser API>> {
+  + innerHTML: String
+  + querySelectorAll(selector: String): NodeList
+}
+
+TodoManager ..> BrowserStorage : uses localStorage
+TodoManager ..> BrowserDocument : uses document
+TodoManager "1" --> "0..1" BrowserElement : container
+
+note right of TodoManager
+  Tasks are plain JavaScript objects,
+  not instances of a Task class.
+
+  Each task contains:
+  - id
+  - desc
+  - completed
+  - priority
+  - createdAt
+
+  buildTaskRow() and
+  summarizeWorkload() are
+  standalone functions,
+  not TodoManager methods.
+end note
+
+@enduml

@@ -1,0 +1,47 @@
+
+@startuml SequenceAddTask
+
+title Todo App - Add a Task (Week 2)
+
+actor User
+participant "Browser UI" as UI
+participant "TodoManager" as Manager
+database "localStorage" as Storage
+participant "DOM" as DOM
+
+User -> UI : Click Add Task
+activate UI
+
+UI -> Manager : addTask(description, "simple")
+activate Manager
+
+note right of Manager
+  Trims and validates description.
+  Creates a task object and
+  adds it to this.tasks.
+end note
+
+Manager -> Manager : saveTasks()
+
+Manager -> Storage : setItem("todo-tasks", JSON.stringify(tasks))
+activate Storage
+Storage --> Manager : stored
+deactivate Storage
+
+Manager -> Manager : render(task.id)
+Manager -> Manager : renderPendingRows()
+Manager -> Manager : renderCompletedRows()
+
+Manager -> DOM : Update container.innerHTML
+activate DOM
+DOM --> Manager : updated
+deactivate DOM
+
+Manager --> UI : true
+deactivate Manager
+
+UI -> UI : Clear input field
+UI --> User : Updated task list visible
+deactivate UI
+
+@enduml
