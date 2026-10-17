@@ -1,40 +1,21 @@
 
 export class TodoRenderer {
-  constructor(containerId, service) {
-    this.service = service;
+  constructor(containerId) {
     this.container = document.getElementById(containerId);
-  }
-
-  bindForm() {
-    const input = document.getElementById('task-input');
-    const addBtn = document.getElementById('add-task-btn');
-    const addUrgentBtn = document.getElementById('add-urgent-btn');
-
-    const submitTask = type => {
-      if (!this.service.addTask(input.value, type)) {
-        alert('Task needs at least a few characters.');
-        return;
-      }
-
-      const lastTask = this.service.tasks[this.service.tasks.length - 1];
-      input.value = '';
-      this.render(lastTask.id);
+    this.actions = {
+      onToggle() {},
+      onDelete() {}
     };
-
-    addBtn.addEventListener('click', () => submitTask('simple'));
-    addUrgentBtn.addEventListener('click', () => submitTask('urgent'));
-
-    input.addEventListener('keydown', event => {
-      if (event.key === 'Enter') {
-        addBtn.click();
-      }
-    });
   }
 
-  renderPendingRows() {
+  bindActions(actions) {
+    this.actions = actions;
+  }
+
+  renderPendingRows(tasks) {
     let html = '';
 
-    for (const task of this.service.tasks) {
+    for (const task of tasks) {
       if (task.completed) continue;
 
       html += buildTaskRow(
@@ -50,10 +31,10 @@ export class TodoRenderer {
     return html;
   }
 
-  renderCompletedRows() {
+  renderCompletedRows(tasks) {
     let html = '';
 
-    for (const task of this.service.tasks) {
+    for (const task of tasks) {
       if (!task.completed) continue;
 
       html += buildTaskRow(
@@ -69,15 +50,15 @@ export class TodoRenderer {
     return html;
   }
 
-  render(justAddedId) {
+  render(service, justAddedId) {
     if (!this.container) return;
 
-    const pendingHtml = this.renderPendingRows();
-    const completedHtml = this.renderCompletedRows();
+    const pendingHtml = this.renderPendingRows(service.tasks);
+    const completedHtml = this.renderCompletedRows(service.tasks);
 
     let oldestPendingLabel = 'none';
 
-    for (const task of this.service.tasks) {
+    for (const task of service.tasks) {
       if (!task.completed) {
         oldestPendingLabel = task.desc;
         break;
@@ -85,7 +66,7 @@ export class TodoRenderer {
     }
 
     this.container.innerHTML =
-      `<p class="status">${summarizeWorkload(this.service)} - oldest: ${oldestPendingLabel}</p>` +
+      `<p class="status">${service.getWorkloadSummary()} - oldest: ${oldestPendingLabel}</p>` +
       '<h2 class="section-title">To do</h2>' +
       `<ul>${pendingHtml || '<li>Nothing pending. Add a task above.</li>'}</ul>` +
       '<h2 class="section-title">Completed</h2>' +
@@ -95,8 +76,7 @@ export class TodoRenderer {
 
     for (const btn of toggleButtons) {
       btn.addEventListener('click', () => {
-        this.service.toggleComplete(Number(btn.dataset.toggle));
-        this.render();
+        this.actions.onToggle(Number(btn.dataset.toggle));
       });
     }
 
@@ -104,8 +84,7 @@ export class TodoRenderer {
 
     for (const btn of deleteButtons) {
       btn.addEventListener('click', () => {
-        this.service.deleteTask(Number(btn.dataset.delete));
-        this.render();
+        this.actions.onDelete(Number(btn.dataset.delete));
       });
     }
 
@@ -114,15 +93,18 @@ export class TodoRenderer {
 
       if (row) {
         row.classList.add('flash');
-        setTimeout(() => row.classList.remove('flash'), 1500);
+
+        setTimeout(() => {
+          row.classList.remove('flash');
+        }, 1500);
       }
     }
 
-    document.title = `Todo (${this.service.tasks.filter(t => !t.completed).length})`;
+    document.title = `Todo (${service.tasks.filter(t => !t.completed).length})`;
   }
 }
 
-// Builds the HTML for each task row.
+// Presentation helper for a single task row.
 function buildTaskRow(id, desc, completed, priority, createdAt, showActions) {
   const label = desc.length > 40 ? `${desc.slice(0, 40)}...` : desc;
   const priorityClass = priority === 'high' ? 'priority-high' : '';
@@ -140,25 +122,4 @@ function buildTaskRow(id, desc, completed, priority, createdAt, showActions) {
       <span class="task-time">${createdAt}</span>
       ${actions}
     </li>`;
-}
-
-// Kept as a standalone helper for the later GRASP lab.
-function summarizeWorkload(manager) {
-  let done = 0;
-  let urgent = 0;
-  let normal = 0;
-
-  for (const task of manager.tasks) {
-    if (task.completed) {
-      done++;
-    } else if (task.priority === 'high') {
-      urgent++;
-    } else {
-      normal++;
-    }
-  }
-
-  const total = manager.tasks.length;
-
-  return `${done}/${total} done - ${urgent} urgent, ${normal} normal remaining`;
 }

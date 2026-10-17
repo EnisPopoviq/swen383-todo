@@ -1,7 +1,6 @@
 
 export class TodoService {
   constructor(storage) {
-    // Accepts any storage object with load() and save() methods.
     this.storage = storage;
     this.tasks = this.storage.load();
   }
@@ -10,7 +9,7 @@ export class TodoService {
     const trimmed = description.trim();
 
     if (trimmed.length < 3) {
-      return false;
+      return null;
     }
 
     if (this.tasks.length >= 20) {
@@ -34,7 +33,7 @@ export class TodoService {
     this.tasks.push(task);
     this.storage.save(this.tasks);
 
-    return true;
+    return task.id;
   }
 
   toggleComplete(id) {
@@ -49,5 +48,23 @@ export class TodoService {
   deleteTask(id) {
     this.tasks = this.tasks.filter(t => t.id !== id);
     this.storage.save(this.tasks);
+  }
+
+  getWorkloadSummary() {
+    let done = 0;
+    let urgent = 0;
+    let normal = 0;
+
+    for (const task of this.tasks) {
+      if (task.completed) {
+        done++;
+      } else if (task.priority === 'high') {
+        urgent++;
+      } else {
+        normal++;
+      }
+    }
+
+    return `${done}/${this.tasks.length} done - ${urgent} urgent, ${normal} normal remaining`;
   }
 }
