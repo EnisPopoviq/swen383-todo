@@ -1,6 +1,9 @@
 
-export class LocalStorageHandler {
+import { StorageHandler } from './StorageHandler.js';
+
+export class LocalStorageHandler extends StorageHandler {
   constructor(key = 'todo-tasks') {
+    super();
     this.key = key;
   }
 

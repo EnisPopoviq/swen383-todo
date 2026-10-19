@@ -1,11 +1,11 @@
 
-import { TodoService } from './TodoService.js';
 import { TodoRenderer } from './TodoRenderer.js';
-import { LocalStorageHandler } from './LocalStorageHandler.js';
 import { TodoController } from './TodoController.js';
+import { LocalStorageFactory } from './StorageFactory.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-  const service = new TodoService(new LocalStorageHandler());
+  const factory = new LocalStorageFactory();
+  const service = factory.createService();
   const renderer = new TodoRenderer('task-container');
   const controller = new TodoController(service, renderer);
 
@@ -29,8 +29,6 @@ window.addEventListener('DOMContentLoaded', () => {
   addUrgentBtn.addEventListener('click', () => add('urgent'));
 
   input.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      addBtn.click();
-    }
+    if (event.key === 'Enter') addBtn.click();
   });
 });
