@@ -6,6 +6,7 @@ import { LocalStorageFactory } from './StorageFactory.js';
 window.addEventListener('DOMContentLoaded', () => {
   const factory = new LocalStorageFactory();
   const service = factory.createService();
+
   const renderer = new TodoRenderer('task-container');
   const controller = new TodoController(service, renderer);
 
@@ -15,20 +16,21 @@ window.addEventListener('DOMContentLoaded', () => {
   const addBtn = document.getElementById('add-task-btn');
   const addUrgentBtn = document.getElementById('add-urgent-btn');
 
-  function add(type) {
-    const newId = controller.addTask(input.value, type);
-
-    if (newId !== null) {
+  addBtn.addEventListener('click', () => {
+    if (controller.addTask(input.value) !== null) {
       input.value = '';
-    } else {
-      alert('Task needs at least a few characters.');
     }
-  }
+  });
 
-  addBtn.addEventListener('click', () => add('simple'));
-  addUrgentBtn.addEventListener('click', () => add('urgent'));
+  addUrgentBtn.addEventListener('click', () => {
+    if (controller.addUrgentTask(input.value) !== null) {
+      input.value = '';
+    }
+  });
 
   input.addEventListener('keydown', event => {
-    if (event.key === 'Enter') addBtn.click();
+    if (event.key === 'Enter') {
+      addBtn.click();
+    }
   });
 });

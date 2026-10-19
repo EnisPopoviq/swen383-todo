@@ -4,7 +4,6 @@ export class TodoController {
     this.todoService = todoService;
     this.todoRenderer = todoRenderer;
 
-    // Give the renderer callbacks instead of the service.
     this.todoRenderer.bindActions({
       onToggle: id => this.toggleTask(id),
       onDelete: id => this.deleteTask(id)
@@ -15,8 +14,18 @@ export class TodoController {
     this.todoRenderer.render(this.todoService);
   }
 
-  addTask(description, type) {
-    const newId = this.todoService.addTask(description, type);
+  addTask(description) {
+    const newId = this.todoService.addTask(description);
+
+    if (newId !== null) {
+      this.todoRenderer.render(this.todoService, newId);
+    }
+
+    return newId;
+  }
+
+  addUrgentTask(description) {
+    const newId = this.todoService.addUrgentTask(description);
 
     if (newId !== null) {
       this.todoRenderer.render(this.todoService, newId);
